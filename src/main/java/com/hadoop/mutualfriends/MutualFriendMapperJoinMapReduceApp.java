@@ -93,7 +93,7 @@ public class MutualFriendMapperJoinMapReduceApp {
                 List<String> dobs = Arrays.asList(dobList.toString().split(","));
                 for(String dob: dobs){
                     if(hs.contains(dob)){
-                        int d = Integer.parseInt(dob.substring(6));
+                        int d = Integer.parseInt(dob.substring(dob.lastIndexOf("/")));
                         sb.append(dob+",");
                         if(d>1995){
                             count++;
