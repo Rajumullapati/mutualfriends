@@ -1,6 +1,7 @@
 package com.hadoop.mutualfriends;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -13,6 +14,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -73,8 +75,13 @@ public class MutualFriendReducerJoinMapReducerApp {
 
         @Override
         public void setup(Reducer.Context context) throws IOException {
-            BufferedReader reader = new BufferedReader(new FileReader(context.getConfiguration().get("USER_DATA")));
-            String line = "";
+            FileSystem fs = FileSystem.get(context.getConfiguration());
+            BufferedReader reader;
+            if(context.getConfiguration().get("USER_DATA").startsWith("/"))
+                reader = new BufferedReader(new InputStreamReader(fs.open(new Path(String.valueOf(fs.getHomeDirectory()).substring(0,String.valueOf(fs.getHomeDirectory()).indexOf('/',9))+""+context.getConfiguration().get("USER_DATA")))));
+            else
+                reader = new BufferedReader(new InputStreamReader(fs.open(new Path(String.valueOf(fs.getHomeDirectory())+"/"+context.getConfiguration().get("USER_DATA")))));
+            String line ="";
             while ((line = reader.readLine()) != null)
             {
                 String[] words = line.split(",");
@@ -91,9 +98,9 @@ public class MutualFriendReducerJoinMapReducerApp {
         }
 
         Configuration conf = new Configuration();
-        conf.set("USER_DATA","hdfs://localhost:9000"+args[1]);
+        conf.set("USER_DATA",args[1]);
         Job job = Job.getInstance(conf, "MutualFriendReducerJoinMapReducerApp");
-        job.addCacheFile(new URI("hdfs://localhost:9000"+args[1]));
+
 
         job.setJarByClass(MutualFriendReducerJoinMapReducerApp.class);
         job.setMapperClass(MutualFriendReducerJoinMapReducerApp.MutualFrndReducerJoinMapper.class);

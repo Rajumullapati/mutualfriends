@@ -38,27 +38,32 @@ public class MutualFriendMapReduceApp {
     @Override
     public void map(LongWritable keyy, Text value, Context context) throws IOException, InterruptedException {
 
+
       Text frndTouple = new Text();
 
       String [] line = value.toString().split("\t");
 
-      if(line.length == 2){
-        int key = Integer.parseInt(line[0]);
-        List<String> frnds = Arrays.asList(line[1].split(","));
+      if (line.length == 2) {
 
-        for(String friend: frnds){
-          if(Integer.parseInt(friend) > key){
-            frndTouple.set(key+","+friend);
+        int f1 = Integer.parseInt(line[0]);
+        String[] friendsList = line[1].split(",");
+        for (String friend2 : friendsList) {
+         int f2 = Integer.parseInt(friend2);
+
+          if((f1==0 && f2 ==1 )||(f1==1 && f2 ==0 )||(f1==20 && f2 ==28193 )||(f1==28193 && f2 ==20 )||(f1==1 && f2 ==29826 )||(f1==29826 && f2 ==1 )||(f1==6222 && f2 ==19272 )||(f1==19272 && f2 ==6222 )||(f1==28041 && f2 == 28056)||(f1==28056 && f2 ==28041)){
+            if (f1 < f2) {
+              frndTouple.set(f1 + "," + f2);
+            } else {
+              frndTouple.set(f2 + "," + f1);
+            }
+            context.write(frndTouple, new Text(line[1]));
           }
-          else{
-            frndTouple.set(friend+","+key);
-          }
-          context.write(frndTouple,new Text(line[1]));
         }
       }
-
-
     }
+
+
+
   }
 
   public static class MutualFrndReducer extends Reducer<Text, Text, Text, Text> {

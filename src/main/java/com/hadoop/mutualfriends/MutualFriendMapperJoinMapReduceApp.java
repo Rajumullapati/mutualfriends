@@ -11,6 +11,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.hadoop.fs.FileSystem;
 
 import java.io.*;
 import java.net.URI;
@@ -34,8 +35,6 @@ public class MutualFriendMapperJoinMapReduceApp {
             String [] line = value.toString().split("\t");
 
             if(line.length == 2){
-                System.out.println("sdsc");
-                log.info("sdsxs");
                 int key = Integer.parseInt(line[0]);
 
                 if(!(line[0].equalsIgnoreCase(f1) || line[0].equalsIgnoreCase(f2))){
@@ -69,7 +68,13 @@ public class MutualFriendMapperJoinMapReduceApp {
 
         @Override
         public void setup(Context context) throws IOException {
-            BufferedReader reader = new BufferedReader(new FileReader(context.getConfiguration().get("USER_DATA")));
+            FileSystem fs = FileSystem.get(context.getConfiguration());
+            BufferedReader reader;
+            if(context.getConfiguration().get("USER_DATA").startsWith("/"))
+                reader = new BufferedReader(new InputStreamReader(fs.open(new Path(String.valueOf(fs.getHomeDirectory()).substring(0,String.valueOf(fs.getHomeDirectory()).indexOf('/',9))+""+context.getConfiguration().get("USER_DATA")))));
+            else
+                reader = new BufferedReader(new InputStreamReader(fs.open(new Path(String.valueOf(fs.getHomeDirectory())+"/"+context.getConfiguration().get("USER_DATA")))));
+//            BufferedReader reader = new BufferedReader(new FileReader(context.getConfiguration().get("USER_DATA")));
             String line = "";
             while ((line = reader.readLine()) != null)
             {
@@ -93,7 +98,7 @@ public class MutualFriendMapperJoinMapReduceApp {
                 List<String> dobs = Arrays.asList(dobList.toString().split(","));
                 for(String dob: dobs){
                     if(hs.contains(dob)){
-                        int d = Integer.parseInt(dob.substring(dob.lastIndexOf("/")));
+                        int d = Integer.parseInt(dob.substring(dob.lastIndexOf("/")+1));
                         sb.append(dob+",");
                         if(d>1995){
                             count++;
@@ -119,7 +124,7 @@ public class MutualFriendMapperJoinMapReduceApp {
         }
 
         Configuration conf = new Configuration();
-        conf.set("USER_DATA","hdfs://localhost:9000"+args[1]);
+        conf.set("USER_DATA",args[1]);
         conf.set("F1",args[3]);
         conf.set("F2",args[4]);
         Job job = Job.getInstance(conf, "MutualFriendMapperJoinMapReduceApp");
