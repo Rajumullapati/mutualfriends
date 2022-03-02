@@ -55,7 +55,7 @@ public class MutualFriendInvertedIndexMapReduceApp {
 
         Configuration conf = new Configuration();
 
-        conf.set("mapred.max.split.size", (new File(args[0]).getTotalSpace()*2)+"");
+//        conf.set("mapred.max.split.size", (new File(args[0]).getTotalSpace()*2)+"");
         Job job = Job.getInstance(conf, "MutualFriendInvertedIndexMapReduceApp");
 
         job.setJarByClass(MutualFriendInvertedIndexMapReduceApp.class);
