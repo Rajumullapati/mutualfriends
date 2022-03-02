@@ -98,7 +98,7 @@ public class MutualFriendReducerJoinMapReducerApp {
         Configuration conf = new Configuration();
         conf.set("USER_DATA",args[1]);
         Job job = Job.getInstance(conf, "MutualFriendReducerJoinMapReducerApp");
-        job.addCacheFile(new URI(args[1]));
+        job.addCacheFile(new URI("hdfs://localhost:9000"+args[1]));
 
         job.setJarByClass(MutualFriendReducerJoinMapReducerApp.class);
         job.setMapperClass(MutualFriendReducerJoinMapReducerApp.MutualFrndReducerJoinMapper.class);

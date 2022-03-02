@@ -109,7 +109,7 @@ public class MutualFriendMapperJoinMapReduceApp {
         Configuration conf = new Configuration();
         conf.set("USER_DATA",args[1]);
         Job job = Job.getInstance(conf, "MutualFriendMapperJoinMapReduceApp");
-        job.addCacheFile(new URI(args[1]));
+        job.addCacheFile(new URI("hdfs://localhost:9000"+args[1]));
 
         job.setJarByClass(MutualFriendMapperJoinMapReduceApp.class);
         job.setMapperClass(MutualFriendMapperJoinMapReduceApp.MutualFrndMapJoinMapper.class);
