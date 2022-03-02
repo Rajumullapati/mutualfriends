@@ -73,17 +73,12 @@ public class MutualFriendReducerJoinMapReducerApp {
 
         @Override
         public void setup(Reducer.Context context) throws IOException {
-            URI[] files = context.getCacheFiles();
-            for(URI file: files){
-                if(file.getPath().equals(context.getConfiguration().get("USER_DATA"))){
-                    BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
-                    String line = "";
-                    while ((line = reader.readLine()) != null)
-                    {
-                        String[] words = line.split(",");
-                        hm.put(words[0],words[9]);
-                    }
-                }
+            BufferedReader reader = new BufferedReader(new FileReader(context.getConfiguration().get("USER_DATA")));
+            String line = "";
+            while ((line = reader.readLine()) != null)
+            {
+                String[] words = line.split(",");
+                hm.put(words[0],words[9]);
             }
         }
 

@@ -9,6 +9,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URI;
@@ -17,18 +19,28 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+
 public class MutualFriendMapperJoinMapReduceApp {
+    private static Logger log = LoggerFactory.getLogger(MutualFriendMapperJoinMapReduceApp.class);
     public static class MutualFrndMapJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
+
 
         private HashMap<String,String> hm = new HashMap<>();
         @Override
         public void map(LongWritable keyy, Text value, Context context) throws IOException, InterruptedException {
             Text frndTouple = new Text();
-
+            String f1 = context.getConfiguration().get("F1");
+            String f2 = context.getConfiguration().get("F2");
             String [] line = value.toString().split("\t");
 
             if(line.length == 2){
+                System.out.println("sdsc");
+                log.info("sdsxs");
                 int key = Integer.parseInt(line[0]);
+
+                if(!(line[0].equalsIgnoreCase(f1) || line[0].equalsIgnoreCase(f2))){
+                    return;
+                }
                 List<String> frnds = Arrays.asList(line[1].split(","));
                 StringBuffer sb = new StringBuffer();
                 for(String friend: frnds){
@@ -39,12 +51,17 @@ public class MutualFriendMapperJoinMapReduceApp {
                     sb.deleteCharAt(sb.lastIndexOf(","));
 
                 for(String friend: frnds){
+                    if(!(friend.equalsIgnoreCase(f1) || friend.equalsIgnoreCase(f2))){
+                        return;
+                    }
                     if(Integer.parseInt(friend) > key){
                         frndTouple.set(key+","+friend);
                     }
                     else{
                         frndTouple.set(friend+","+key);
                     }
+
+                    System.out.println(frndTouple);
                     context.write(frndTouple,new Text(sb.toString()));
                 }
             }
@@ -52,17 +69,12 @@ public class MutualFriendMapperJoinMapReduceApp {
 
         @Override
         public void setup(Context context) throws IOException {
-            URI[] files = context.getCacheFiles();
-            for(URI file: files){
-                if(file.getPath().equals(context.getConfiguration().get("USER_DATA"))){
-                    BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
-                    String line = "";
-                    while ((line = reader.readLine()) != null)
-                    {
-                        String[] words = line.split(",");
-                        hm.put(words[0],words[9]);
-                    }
-                }
+            BufferedReader reader = new BufferedReader(new FileReader(context.getConfiguration().get("USER_DATA")));
+            String line = "";
+            while ((line = reader.readLine()) != null)
+            {
+                String[] words = line.split(",");
+                hm.put(words[0],words[9]);
             }
         }
 
@@ -101,15 +113,16 @@ public class MutualFriendMapperJoinMapReduceApp {
     }
 
     public static void main(String [] args) throws  Exception{
-        if (args.length != 3) {
-            System.err.println("Mutual friend mapper join: <InPath> <UserData> <OutPath>");
+        if (args.length != 5) {
+            System.err.println("Mutual friend mapper join: <InPath> <UserData> <OutPath> <Friend1> <Friend2>");
             System.exit(2);
         }
 
         Configuration conf = new Configuration();
         conf.set("USER_DATA","hdfs://localhost:9000"+args[1]);
+        conf.set("F1",args[3]);
+        conf.set("F2",args[4]);
         Job job = Job.getInstance(conf, "MutualFriendMapperJoinMapReduceApp");
-        job.addCacheFile(new URI("hdfs://localhost:9000"+args[1]));
 
         job.setJarByClass(MutualFriendMapperJoinMapReduceApp.class);
         job.setMapperClass(MutualFriendMapperJoinMapReduceApp.MutualFrndMapJoinMapper.class);
