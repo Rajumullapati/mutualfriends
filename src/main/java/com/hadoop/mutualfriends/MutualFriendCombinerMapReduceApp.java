@@ -40,13 +40,13 @@ public class MutualFriendCombinerMapReduceApp {
         private Text val_out = new Text("");
         public void reduce(Text key, Iterable<Text> value, Context context){
             int count = 0;
-            System.out.println("Combiner started : "+key);
+
+            //Following code looks for max freq words.
             for(Text t: value){
                 String []  a = t.toString().split(",");
                 System.out.println(Arrays.toString(a));
                 count = count + a.length;
             }
-            System.out.println("count "+count);
             if(max_count == count){
                 String temp = val_out.toString();
                 temp = temp+"\n"+key+"\t"+max_count;
@@ -61,15 +61,18 @@ public class MutualFriendCombinerMapReduceApp {
 
         }
 
+        //Called after reduce.
         @Override
         public void cleanup(Context context) throws IOException, InterruptedException {
-//            FileSystem fs = FileSystem.get(context.getConfiguration());
-//            BufferedReader reader;
-//            if(context.getConfiguration().get("USER_DATA").startsWith("/"))
-//                reader = new BufferedReader(new InputStreamReader(fs.open(new Path(String.valueOf(fs.getHomeDirectory()).substring(0,String.valueOf(fs.getHomeDirectory()).indexOf('/',9))+""+context.getConfiguration().get("USER_DATA")))));
-//            else
-//                reader = new BufferedReader(new InputStreamReader(fs.open(new Path(String.valueOf(fs.getHomeDirectory())+"/"+context.getConfiguration().get("USER_DATA")))));
-            System.out.println("Clean");
+            FileSystem fs = FileSystem.get(context.getConfiguration());
+
+            //Deletes the temp files.
+            if(context.getConfiguration().get("INPUT_PATH").startsWith("/")){
+                fs.delete(new Path(String.valueOf(fs.getHomeDirectory()).substring(0,String.valueOf(fs.getHomeDirectory()).indexOf('/',9))+""+context.getConfiguration().get("INPUT_PATH")),true);
+            }
+            else{
+                fs.delete(new Path(String.valueOf(fs.getHomeDirectory())+"/"+context.getConfiguration().get("USER_DATA")),true);
+            }
             context.write(new Text(""),val_out);
             super.cleanup(context);
         }
@@ -81,7 +84,9 @@ public class MutualFriendCombinerMapReduceApp {
             System.exit(2);
         }
 
+        //Runs the Q4 jobs.
         Configuration conf1 = new Configuration();
+        //Set up the split so that only one mapper is run.
         conf1.set("mapreduce.input.fileinputformat.split.minsize", "1202020");
         conf1.set("mapreduce.task.timeout","60000000");
         Job job1 = Job.getInstance(conf1, "MutualFriendCombinerInversionMapReduceApp");
@@ -93,7 +98,10 @@ public class MutualFriendCombinerMapReduceApp {
         FileInputFormat.addInputPath(job1, new Path(args[0]));
         FileOutputFormat.setOutputPath(job1, new Path(args[0].substring(0,args[0].lastIndexOf('/'))+"/temp"));
 
+
         job1.waitForCompletion(true);
+
+        //Q4 output is passed as input for this job.
         conf1.set("INPUT_PATH",args[0].substring(0,args[0].lastIndexOf('/')));
         Job job2 = Job.getInstance(conf1, "MutualFriendCombinerMapReduceApp");
         job2.setJarByClass(MutualFriendCombinerMapReduceApp.class);

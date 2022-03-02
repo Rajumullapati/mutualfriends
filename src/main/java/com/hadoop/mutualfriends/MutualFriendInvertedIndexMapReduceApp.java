@@ -29,6 +29,7 @@ public class MutualFriendInvertedIndexMapReduceApp {
             for(String str: split){
                 context.write(new Text(str), new Text(count+""));
             }
+            //Increments the line number count.
             count++;
 
         }
@@ -37,6 +38,7 @@ public class MutualFriendInvertedIndexMapReduceApp {
     public static class MutualFriendInvertedIndexReducer extends Reducer<Text, Text, Text, Text> {
         @Override
         public void reduce(Text key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
+            //Collects the list of line numbers.
             List<Integer> arr = new ArrayList<Integer>();
             for(Text val : value){
                 try {
@@ -60,6 +62,7 @@ public class MutualFriendInvertedIndexMapReduceApp {
 
         Configuration conf = new Configuration();
 
+        //Set up the split so that only one mapper is run.
         conf.set("mapreduce.input.fileinputformat.split.minsize", "1202020");
         Job job = Job.getInstance(conf, "MutualFriendInvertedIndexMapReduceApp");
 

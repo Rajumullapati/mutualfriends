@@ -31,6 +31,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 /**
  * This is a simple application that includes a MapReduce program.
+ *
+ * Q1
  */
 public class MutualFriendMapReduceApp {
   public static class MutualFrndMapper extends Mapper<LongWritable, Text, Text, Text> {
@@ -49,13 +51,14 @@ public class MutualFriendMapReduceApp {
         String[] friendsList = line[1].split(",");
         for (String friend2 : friendsList) {
          int f2 = Integer.parseInt(friend2);
-
+          // Checks for given touple.
           if((f1==0 && f2 ==1 )||(f1==1 && f2 ==0 )||(f1==20 && f2 ==28193 )||(f1==28193 && f2 ==20 )||(f1==1 && f2 ==29826 )||(f1==29826 && f2 ==1 )||(f1==6222 && f2 ==19272 )||(f1==19272 && f2 ==6222 )||(f1==28041 && f2 == 28056)||(f1==28056 && f2 ==28041)){
             if (f1 < f2) {
               frndTouple.set(f1 + "," + f2);
             } else {
               frndTouple.set(f2 + "," + f1);
             }
+            //Writes the touple along with the entire friend list.
             context.write(frndTouple, new Text(line[1]));
           }
         }
@@ -66,6 +69,7 @@ public class MutualFriendMapReduceApp {
 
   }
 
+  //Reducer class
   public static class MutualFrndReducer extends Reducer<Text, Text, Text, Text> {
 
     @Override
@@ -75,9 +79,10 @@ public class MutualFriendMapReduceApp {
       Text res = new Text();
       StringBuilder sb = new StringBuilder();
       for(Text frndList: values){
+        //Splits the individual friends.
         List<String> frnds = Arrays.asList(frndList.toString().split(","));
         for(String friend: frnds){
-          if(hs.contains(friend)){
+          if(hs.contains(friend)){ //Checks if is a mutual.
             sb.append(friend+",");
           }else{
             hs.add(friend);
@@ -99,6 +104,8 @@ public class MutualFriendMapReduceApp {
       System.exit(2);
     }
 
+
+    //Configs.
     Configuration conf = new Configuration();
     Job job = Job.getInstance(conf, "MutualFriend");
 

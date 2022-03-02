@@ -50,7 +50,7 @@ public class MutualFriendReducerJoinMapReducerApp {
                 List<String> frnds = Arrays.asList(dobList.toString().split(","));
                 
                 for(String frnd: frnds){
-                    String dob = hm.get(frnd);
+                    String dob = hm.get(frnd); // Gets age of each friends.
                     int age = 0;
                     try {
                         age = getAgeFromDob(dob);
@@ -58,7 +58,7 @@ public class MutualFriendReducerJoinMapReducerApp {
                         e.printStackTrace();
                     }
                     if(age<min_age){
-                        min_age = age;
+                        min_age = age; // Gets the min age.
                     }
                 }
             }
@@ -66,6 +66,7 @@ public class MutualFriendReducerJoinMapReducerApp {
             context.write(key,new Text("\t"+min_age));
         }
 
+        //Utility to find the age in years.
         private int getAgeFromDob(String dob) throws ParseException {
             Date d = new SimpleDateFormat("MM/dd/yyyy").parse(dob);
             Period period = Period.between(d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), LocalDate.now());
@@ -77,6 +78,7 @@ public class MutualFriendReducerJoinMapReducerApp {
         public void setup(Reducer.Context context) throws IOException {
             FileSystem fs = FileSystem.get(context.getConfiguration());
             BufferedReader reader;
+            //Reads the userdata file.
             if(context.getConfiguration().get("USER_DATA").startsWith("/"))
                 reader = new BufferedReader(new InputStreamReader(fs.open(new Path(String.valueOf(fs.getHomeDirectory()).substring(0,String.valueOf(fs.getHomeDirectory()).indexOf('/',9))+""+context.getConfiguration().get("USER_DATA")))));
             else
@@ -98,7 +100,7 @@ public class MutualFriendReducerJoinMapReducerApp {
         }
 
         Configuration conf = new Configuration();
-        conf.set("USER_DATA",args[1]);
+        conf.set("USER_DATA",args[1]); //Adds user data file path to job configs.
         Job job = Job.getInstance(conf, "MutualFriendReducerJoinMapReducerApp");
 
 

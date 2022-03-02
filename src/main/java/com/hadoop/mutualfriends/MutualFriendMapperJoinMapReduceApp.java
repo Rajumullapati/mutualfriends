@@ -66,6 +66,7 @@ public class MutualFriendMapperJoinMapReduceApp {
             }
         }
 
+        //Called before map.
         @Override
         public void setup(Context context) throws IOException {
             FileSystem fs = FileSystem.get(context.getConfiguration());
